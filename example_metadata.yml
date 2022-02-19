@@ -1,0 +1,20 @@
+separator: '_' # files will be named 01_something.flac etc.
+remove_artwork: true
+album_tags: # tags that will be applied to every track unless overwritten
+  album: "The Very Best of Everyone"
+  artist: Red Velvet
+  albumartist: Various Artists
+  genre: K-Pop
+  date: 2022
+tracks:
+  1: Sunny Side Up! # if just a string is specified, this will be the title
+  2: # we can specify individual tags
+    title: One in a Million
+    artist: TWICE # this will overwrite the global configuration
+  3:
+    title: Whistle
+    artist: Blackpink
+    genre: K-Pop/DnB # overwrite anything
+  4:
+    title: Wow Thing
+    artists: [Chungha, Seulgi, SinB, Soyeon] # multiple artists!
