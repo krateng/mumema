@@ -9,7 +9,7 @@ from unidecode import unidecode
 paranoianames = re.compile(r"track([0-9]+).cdda.[wav/flac]")
 
 def clean_filename(filename):
-	filename = unidecode(filename).replace(" - ","-").replace(" ",".").replace("/","-").strip()
+	filename = unidecode(filename).replace(" - ","-").replace(" ","-").replace("/","-").strip()
 	filename = ''.join(c for c in filename if (c.isalpha() or c=="_" or c=="-" or c=="."))
 	return filename
 
@@ -48,8 +48,9 @@ def tag_all(data,tracks):
 	for f in os.listdir('.'):
 		ext = f.split('.')[-1].lower()
 
-		if ext in ['flac']:
 
+
+		if ext in ['flac','wav']:
 
 			match = paranoianames.match(f)
 
@@ -73,9 +74,16 @@ def tag_all(data,tracks):
 			tracktags = tracks[idxguess]
 			if paranoia:
 				# use the separator defined by the user
-				newf = f"{idxguess_padded}{data['separator']}{clean_filename(tracktags['title'])}"
-				print(f"Renaming {f} to {newf}")
-				os.rename(f,newf)
+				newf = f"{idxguess_padded}{data['separator']}{clean_filename(tracktags['title'])}.flac"
+
+				# Convert if necessary
+				if ext == 'wav':
+					print("Converting",f,"to",newf)
+					subprocess.call(["ffmpeg","-i",f,newf])
+					ext = 'flac'
+				else:
+					print("Renaming",f,"to",newf)
+					os.rename(f,newf)
 				f = newf
 
 			print(f"Tagging {f} as: {tracktags}")
