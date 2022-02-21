@@ -17,6 +17,8 @@ classifiers = [
 ]
 
 dependencies = [
+	"doreah>=1.6.11",
+	"unidecode",
 ]
 
 [project.scripts]

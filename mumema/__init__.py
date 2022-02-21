@@ -1,9 +1,9 @@
-from doreah.control import mainfunction
-
 import yaml
 import os
 import subprocess
 import re
+
+from doreah.control import mainfunction
 from unidecode import unidecode
 
 paranoianames = re.compile(r"track([0-9]+).cdda.[wav/flac]")
