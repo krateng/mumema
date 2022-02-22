@@ -7,8 +7,9 @@ from doreah.control import mainfunction
 from doreah.io import col
 from unidecode import unidecode
 
-paranoianames = re.compile(r"track([0-9]+).cdda.[wav/flac]")
-metadata_filenames = ['metadata.yml','album.yml']
+PARANOIA_NAMES = re.compile(r"track([0-9]+).cdda.[wav/flac]")
+METADATA_FILENAMES = ['metadata.yml','album.yml']
+RAW_FOLDER = 'wav_originals'
 
 def clean_filename(filename):
 	filename = unidecode(filename).replace(" - ","-").replace(" ","-").replace("/","-").strip()
@@ -17,7 +18,7 @@ def clean_filename(filename):
 
 
 def load_info_from_files(srcfile=None):
-	possible_metadatafiles = [srcfile] if srcfile is not None else metadata_filenames
+	possible_metadatafiles = [srcfile] if srcfile is not None else METADATA_FILENAMES
 
 	# Go up the dir tree for all metadata files
 	allfolders = []
@@ -65,6 +66,7 @@ def tag_all(data,tracks):
 	# set defaults if missing
 	data['separator'] = data.get('separator','.')
 	data['remove_artwork'] = data.get('remove_artwork',False)
+	data['move_raw_files'] = data.get('move_raw_files',True)
 
 	# check files
 	for f in os.listdir('.'):
@@ -76,7 +78,7 @@ def tag_all(data,tracks):
 			print()
 			print("Found",col['orange'](f))
 
-			match = paranoianames.match(f)
+			match = PARANOIA_NAMES.match(f)
 
 			# fresh files from cdparanoia
 			if match is not None:
@@ -108,6 +110,10 @@ def tag_all(data,tracks):
 					if code != 0:
 						print(col['red']("    Error while converting. Please check ffmpeg.log."))
 						continue
+					if data['move_raw_files']:
+						print("    Moving to {RAW_FOLDER}")
+						os.makedirs(RAW_FOLDER,exist_ok=True)
+						os.rename(f,os.path.join(RAW_FOLDER,f))
 					ext = 'flac'
 				else:
 					print("    Renaming",f,"to",newf)
