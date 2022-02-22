@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-	"doreah>=1.6.11",
+	"doreah >= 1.6.11",
 	"unidecode",
 ]
 

@@ -4,6 +4,7 @@ import subprocess
 import re
 
 from doreah.control import mainfunction
+from doreah.io import col
 from unidecode import unidecode
 
 paranoianames = re.compile(r"track([0-9]+).cdda.[wav/flac]")
@@ -17,28 +18,44 @@ def clean_filename(filename):
 def load_info_from_file(srcfile=None):
 	possible_metadatafiles = [srcfile] if srcfile is not None else ['metadata.yml','album.yml']
 
-	for metadatafile in possible_metadatafiles:
-		if os.path.exists(metadatafile):
-			print(f"Using metadata file {metadatafile}")
-			with open(metadatafile) as mdf:
-				data = yaml.safe_load(mdf)
+	# Go up the dir tree for all metadata files
+	allfolders = []
+	currentfolder = os.getcwd()
+	while True:
+		allfolders.append(currentfolder)
+		if os.path.dirname(currentfolder) != currentfolder:
+			currentfolder = os.path.dirname(currentfolder)
+		else:
+			# reached filesystem root
+			break
 
-				# organize data
-				commontags = data.pop('album_tags')
-				tracks = data.pop('tracks')
+	commontags = {}
 
-				for idx in tracks:
-					if isinstance(tracks[idx],str):
-						tracks[idx] = {'title':tracks[idx]}
-					tracks[idx]['tracknumber'] = idx
-					tracks[idx] = {**commontags,**tracks[idx]}
 
-				print(f"Found information about {len(tracks)} tracks.")
+	for folder in reversed(allfolders):
+		for metadatafile in possible_metadatafiles:
+			full_metadatafile = os.path.join(folder,metadatafile)
+			if os.path.exists(full_metadatafile):
+				print("Using metadata file",col['yellow'](full_metadatafile))
+				with open(full_metadatafile,"r") as f:
+					localdata = yaml.safe_load(f)
+				commontags.update(localdata.pop('common_tags'))
 
-				return data,tracks
-	else:
-		print("Could not find metadata file.")
-		return None
+
+	# use track info from last loaded file (in target folder)
+	tracks = localdata.pop('tracks')
+	data = localdata
+
+	for idx in tracks:
+		if isinstance(tracks[idx],str):
+			tracks[idx] = {'title':tracks[idx]}
+		tracks[idx]['tracknumber'] = idx
+		tracks[idx] = {**commontags,**tracks[idx]}
+
+	print(f"Found information about {len(tracks)} tracks.")
+
+	return data,tracks
+
 
 
 
