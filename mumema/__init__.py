@@ -114,7 +114,7 @@ def tag_all(data,tracks):
 					os.rename(f,newf)
 				f = newf
 
-			print(f"    Tagging as: {tracktags}")
+			print(col['lawngreen'](f"    Tagging as: {tracktags}"))
 
 			if ext == 'flac':
 				subprocess.call(["metaflac","--remove","--block-type=VORBIS_COMMENT",f])
