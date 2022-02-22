@@ -69,7 +69,7 @@ def tag_all(data,tracks):
 	data['move_raw_files'] = data.get('move_raw_files',True)
 
 	# check files
-	for f in os.listdir('.'):
+	for f in sorted(os.listdir('.')):
 		ext = f.split('.')[-1].lower()
 
 
@@ -127,6 +127,9 @@ def tag_all(data,tracks):
 				subprocess.call(["metaflac",f] + [f"--set-tag={key.upper()}={value}" for key,value in tracktags.items()])
 				if data['remove_artwork']:
 					subprocess.call(["metaflac","--remove","--block-type=PICTURE",f])
+
+	print()
+	print("All done!")
 
 
 @mainfunction({'f':'srcfile'},shield=True)
