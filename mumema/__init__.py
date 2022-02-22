@@ -105,7 +105,9 @@ def tag_all(data,tracks):
 					print("    Converting",f,"to",newf)
 					with open('ffmpeg.log','a') as logf:
 						code = subprocess.run(["ffmpeg","-nostdin","-i",f,newf],stdout=logf,stderr=logf).returncode
-					if code != 0: print(col['red']("    Error while converting. Please check ffmpeg.log."))
+					if code != 0:
+						print(col['red']("    Error while converting. Please check ffmpeg.log."))
+						continue
 					ext = 'flac'
 				else:
 					print("    Renaming",f,"to",newf)
