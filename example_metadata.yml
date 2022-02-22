@@ -1,6 +1,6 @@
 separator: '_' # files will be named 01_something.flac etc.
 remove_artwork: true
-album_tags: # tags that will be applied to every track unless overwritten
+common_tags: # tags that will be applied to every track unless overwritten
   album: "The Very Best of Everyone"
   artist: Red Velvet
   albumartist: Various Artists

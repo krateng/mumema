@@ -8,6 +8,7 @@ from doreah.io import col
 from unidecode import unidecode
 
 paranoianames = re.compile(r"track([0-9]+).cdda.[wav/flac]")
+metadata_filenames = ['metadata.yml','album.yml']
 
 def clean_filename(filename):
 	filename = unidecode(filename).replace(" - ","-").replace(" ","-").replace("/","-").strip()
@@ -15,8 +16,8 @@ def clean_filename(filename):
 	return filename
 
 
-def load_info_from_file(srcfile=None):
-	possible_metadatafiles = [srcfile] if srcfile is not None else ['metadata.yml','album.yml']
+def load_info_from_files(srcfile=None):
+	possible_metadatafiles = [srcfile] if srcfile is not None else metadata_filenames
 
 	# Go up the dir tree for all metadata files
 	allfolders = []
@@ -61,6 +62,10 @@ def load_info_from_file(srcfile=None):
 
 def tag_all(data,tracks):
 
+	# set defaults if missing
+	data['separator'] = data.get('separator','.')
+	data['remove_artwork'] = data.get('remove_artwork',False)
+
 	# check files
 	for f in os.listdir('.'):
 		ext = f.split('.')[-1].lower()
@@ -68,6 +73,8 @@ def tag_all(data,tracks):
 
 
 		if ext in ['flac','wav']:
+			print()
+			print("Found",col['orange'](f))
 
 			match = paranoianames.match(f)
 
@@ -76,7 +83,7 @@ def tag_all(data,tracks):
 				paranoia = True
 				idxguess_padded = match.groups()[0]
 				idxguess = int(idxguess_padded)
-				print(f"{f} seems to be a cdparanoia file.")
+				print(f"    Looks like a cdparanoia file...")
 
 			# alrady named flac files
 			else:
@@ -85,7 +92,7 @@ def tag_all(data,tracks):
 
 			# match to track info
 			if idxguess not in tracks:
-				print(f"{f} could not be matched to a track!")
+				print(f"    Could not be matched to a track!")
 				continue
 
 			tracktags = tracks[idxguess]
@@ -95,15 +102,17 @@ def tag_all(data,tracks):
 
 				# Convert if necessary
 				if ext == 'wav':
-					print("Converting",f,"to",newf)
-					subprocess.call(["ffmpeg","-i",f,newf])
+					print("    Converting",f,"to",newf)
+					with open('ffmpeg.log','a') as logf:
+						code = subprocess.run(["ffmpeg","-nostdin","-i",f,newf],stdout=logf,stderr=logf).returncode
+					if code != 0: print(col['red']("    Error while converting. Please check ffmpeg.log."))
 					ext = 'flac'
 				else:
-					print("Renaming",f,"to",newf)
+					print("    Renaming",f,"to",newf)
 					os.rename(f,newf)
 				f = newf
 
-			print(f"Tagging {f} as: {tracktags}")
+			print(f"    Tagging as: {tracktags}")
 
 			if ext == 'flac':
 				subprocess.call(["metaflac","--remove","--block-type=VORBIS_COMMENT",f])
@@ -114,7 +123,7 @@ def tag_all(data,tracks):
 
 @mainfunction({'f':'srcfile'},shield=True)
 def main(srcfile=None):
-	info = load_info_from_file(srcfile)
+	info = load_info_from_files(srcfile)
 	if info is not None:
 		data,tracks = info
 		return tag_all(data,tracks)
