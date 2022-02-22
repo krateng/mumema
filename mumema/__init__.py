@@ -7,6 +7,8 @@ from doreah.control import mainfunction
 from doreah.io import col
 from unidecode import unidecode
 
+from . import formats
+
 PARANOIA_NAMES = re.compile(r"track([0-9]+).cdda.[wav/flac]")
 METADATA_FILENAMES = ['metadata.yml','album.yml']
 RAW_FOLDER = 'wav_originals'
@@ -74,7 +76,7 @@ def tag_all(data,tracks):
 
 
 
-		if ext in ['flac','wav']:
+		if ext in formats.handlers or ext == 'wav':
 			print()
 			print("Found",col['orange'](f))
 
@@ -111,7 +113,7 @@ def tag_all(data,tracks):
 						print(col['red']("    Error while converting. Please check ffmpeg.log."))
 						continue
 					if data['move_raw_files']:
-						print("    Moving to {RAW_FOLDER}")
+						print(f"    Moving wav file to {RAW_FOLDER}")
 						os.makedirs(RAW_FOLDER,exist_ok=True)
 						os.rename(f,os.path.join(RAW_FOLDER,f))
 					ext = 'flac'
@@ -122,11 +124,8 @@ def tag_all(data,tracks):
 
 			print(col['lawngreen'](f"    Tagging as: {tracktags}"))
 
-			if ext == 'flac':
-				subprocess.call(["metaflac","--remove","--block-type=VORBIS_COMMENT",f])
-				subprocess.call(["metaflac",f] + [f"--set-tag={key.upper()}={value}" for key,value in tracktags.items()])
-				if data['remove_artwork']:
-					subprocess.call(["metaflac","--remove","--block-type=PICTURE",f])
+			# let the format handler take over
+			formats.handlers[ext].tag(f,tracktags,data)
 
 	print()
 	print("All done!")
