@@ -1,4 +1,4 @@
-separator: '_' # files will be named 01_something.flac etc.
+filename_regex: '([0-9]+)-.*' # regex that describes your filenames and has the track number as capture group
 remove_artwork: true
 move_raw_files: false # whether to move raw cdparanoia files after converting
 common_tags: # tags that will be applied to every track unless overwritten
