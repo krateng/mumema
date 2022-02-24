@@ -10,6 +10,7 @@ from unidecode import unidecode
 from . import formats
 
 PARANOIA_NAMES = re.compile(r"track([0-9]+).cdda.[wav/flac]")
+TRACKNUMBER_FIND = re.compile("[^0-9]*([0-9]+).*")
 METADATA_FILENAMES = ['metadata.yml','album.yml']
 RAW_FOLDER = 'wav_originals'
 
@@ -47,7 +48,7 @@ def load_info_from_files(srcfile=None):
 
 
 	# use track info from last loaded file (in target folder)
-	tracks = localdata.pop('tracks')
+	tracks = localdata.pop('tracks') if 'tracks' in localdata else []
 	data = localdata
 
 	for idx in tracks:
@@ -66,7 +67,8 @@ def load_info_from_files(srcfile=None):
 def tag_all(data,tracks):
 
 	# set defaults if missing
-	data['separator'] = data.get('separator','.')
+	#data['separator'] = data.get('separator','.')
+	data['filename_regex'] =  data.get('filename_regex',TRACKNUMBER_FIND)
 	data['remove_artwork'] = data.get('remove_artwork',False)
 	data['move_raw_files'] = data.get('move_raw_files',True)
 
@@ -89,10 +91,14 @@ def tag_all(data,tracks):
 				idxguess = int(idxguess_padded)
 				print(f"    Looks like a cdparanoia file...")
 
-			# alrady named flac files
+			# alrady named files
 			else:
 				paranoia = False
-				idxguess = int(f.split(data['separator'])[0])
+				try:
+					match = data['filename_regex'].match(f)
+					idxguess = int(match.groups()[0])
+				except:
+					idxguess = None
 
 			# match to track info
 			if idxguess not in tracks:
@@ -101,8 +107,7 @@ def tag_all(data,tracks):
 
 			tracktags = tracks[idxguess]
 			if paranoia:
-				# use the separator defined by the user
-				newf = f"{idxguess_padded}{data['separator']}{clean_filename(tracktags['title'])}.flac"
+				newf = f"{idxguess_padded}.{clean_filename(tracktags['title'])}.flac"
 
 				# Convert if necessary
 				if ext == 'wav':

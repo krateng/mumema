@@ -1,5 +1,5 @@
 import subprocess
-import itertools
+from itertools import chain
 
 
 handlers = {}
@@ -46,4 +46,4 @@ class ID3(FormatHandler):
 	}
 
 	def tag(self,file,tags,data):
-		subprocess.call(["id3v2"] + list(itertools.chain(*[[f"--{self.tagnames[key]}",str(value)] for key,value in tags.items()])) + [file])
+		subprocess.call(["id3v2"] + list(chain(*[[f"--{self.tagnames[key]}",str(value)] for key,value in tags.items()])) + [file])
