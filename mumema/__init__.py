@@ -13,6 +13,7 @@ PARANOIA_NAMES = re.compile(r"track([0-9]+).cdda.[wav/flac]")
 TRACKNUMBER_FIND = re.compile("[^0-9]*([0-9]+).*")
 METADATA_FILENAMES = ['metadata.yml','album.yml']
 RAW_FOLDER = 'wav_originals'
+COMPACT_OUTPUT = True
 
 def clean_filename(filename):
 	filename = unidecode(filename).replace(" - ","-").replace(" ","-").replace("/","-").strip()
@@ -57,7 +58,7 @@ def load_info_from_files(srcfile=None):
 		tracks[idx]['tracknumber'] = idx
 		tracks[idx] = {**commontags,**tracks[idx]}
 
-	print(f"Found information about {len(tracks)} tracks.")
+	print(f"Found information about {len(tracks)} track{'s' if len(tracks) != 1 else ''}.")
 
 	return data,tracks
 
@@ -127,7 +128,12 @@ def tag_all(data,tracks):
 					os.rename(f,newf)
 				f = newf
 
-			print(col['lawngreen'](f"    Tagging as: {tracktags}"))
+			print(col['lawngreen'](f"    Tagging..."))
+			if COMPACT_OUTPUT:
+				print("    " + " | ".join(f"{k}: {col['lawngreen'](v)}" for k,v in tracktags.items()))
+			else:
+				for k,v in tracktags.items():
+					print(f"    {k}: {col['lawngreen'](v)}")
 
 			# let the format handler take over
 			formats.handlers[ext].tag(f,tracktags,data)
