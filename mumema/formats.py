@@ -25,7 +25,7 @@ class Vorbis(FormatHandler):
 
 	def tag(self,file,tags,data):
 
-		subprocess.call(["metaflac","--remove","--block-type=VORBIS_COMMENT",file])
+		subprocess.call(["metaflac"] + [f"--remove-tag={key}" for key in tags] + [file])
 		subprocess.call(["metaflac",file] + [f"--set-tag={self.tagnames[key]}={value}" for key,value in tags.items()])
 		if data['remove_artwork']:
 			subprocess.call(["metaflac","--remove","--block-type=PICTURE",file])
